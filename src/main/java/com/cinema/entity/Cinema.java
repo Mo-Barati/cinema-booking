@@ -1,6 +1,8 @@
 package com.cinema.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 
 @Entity
 @Table(name = "cinema")
@@ -55,6 +57,7 @@ public class Cinema {
 
     // --- Relationships ---
     @OneToMany(mappedBy = "cinema", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private java.util.List<Showtime> showtimes = new java.util.ArrayList<>();
 
 

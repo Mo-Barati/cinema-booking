@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 
 @Entity
 @Table(name = "showtimes")
@@ -38,6 +40,7 @@ public class Showtime {
     // --- Relationship with Cinema ---
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cinema_id", nullable = false)
+    @JsonBackReference
     private Cinema cinema;
 
     @Column(nullable = false, updatable = false)

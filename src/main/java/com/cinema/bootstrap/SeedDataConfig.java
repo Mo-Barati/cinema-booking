@@ -24,23 +24,27 @@ public class SeedDataConfig {
                 return; // already seeded
             }
 
-            // TODO: Adjust these setters/fields to match your Cinema entity names.
+
             // Minimal example with typical fields:
             Cinema odeon = new Cinema();
-            // odeon.setName("Odeon Leicester Square");
-            // odeon.setAddress("24-26 Leicester Square");
-            // odeon.setCity("London");
-            // odeon.setPostcode("WC2H 7JY");
-            // odeon.setPhone("+44 20 1234 5678");
-            // odeon.setEmail("leicester@odeon.co.uk");
+            odeon.setName("Odeon Leicester Square");
+            odeon.setAddressLine("24-26 Leicester Square");
+            odeon.setCity("London");
+            odeon.setPostcode("WC2H 7JY");          // optional
+            odeon.setCountry("UK");                 // optional
+            odeon.setPhone("+44 20 1234 5678");     // optional
+            odeon.setEmail("leicester@odeon.co.uk");// optional
+            odeon.setTotalScreens(10);              // REQUIRED (1..50)
 
             Cinema imax = new Cinema();
-            // imax.setName("BFI IMAX Waterloo");
-            // imax.setAddress("1 Charlie Chaplin Walk");
-            // imax.setCity("London");
-            // imax.setPostcode("SE1 8XR");
-            // imax.setPhone("+44 20 8765 4321");
-            // imax.setEmail("boxoffice@bfi-imax.co.uk");
+            imax.setName("BFI IMAX Waterloo");
+            imax.setAddressLine("1 Charlie Chaplin Walk");
+            imax.setCity("London");
+            imax.setPostcode("SE1 8XR");            // optional
+            imax.setCountry("UK");                  // optional
+            imax.setPhone("+44 20 8765 4321");      // optional
+            imax.setEmail("boxoffice@bfi-imax.co.uk"); // optional
+            imax.setTotalScreens(5);                // REQUIRED (1..50)
 
             odeon = cinemaRepo.save(odeon);
             imax  = cinemaRepo.save(imax);
