@@ -30,4 +30,20 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Long>, JpaSp
                                       @Param("screenNumber") int screenNumber,
                                       @Param("startTime") LocalDateTime startTime,
                                       @Param("endTime") LocalDateTime endTime);
+
+
+    @Query("""
+       SELECT CASE WHEN COUNT(s) > 0 THEN TRUE ELSE FALSE END
+       FROM Showtime s
+       WHERE s.cinema.id = :cinemaId
+         AND s.screenNumber = :screenNumber
+         AND s.startTime < :endTime
+         AND s.endTime   > :startTime
+         AND (:excludeId IS NULL OR s.id <> :excludeId)
+       """)
+    boolean existsOverlappingShowtimeExcludingId(@Param("cinemaId") Long cinemaId,
+                                                 @Param("screenNumber") int screenNumber,
+                                                 @Param("startTime") LocalDateTime startTime,
+                                                 @Param("endTime") LocalDateTime endTime,
+                                                 @Param("excludeId") Long excludeId);
 }
