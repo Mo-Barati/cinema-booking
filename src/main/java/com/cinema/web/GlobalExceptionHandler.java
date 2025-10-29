@@ -7,6 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import java.util.stream.Collectors;
 
 import java.time.Instant;
 import java.util.Map;
@@ -36,5 +39,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(OverlappingShowtimeException.class)
     public ResponseEntity<Map<String, Object>> conflict(OverlappingShowtimeException ex) {
         return body(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> validation(MethodArgumentNotValidException ex) {
+        String details = ex.getBindingResult().getFieldErrors().stream()
+                .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+        return body(HttpStatus.BAD_REQUEST, "Validation failed: " + details);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> typeMismatch(MethodArgumentTypeMismatchException ex) {
+        String msg = "Invalid value for parameter '" + ex.getName() + "'";
+        return body(HttpStatus.BAD_REQUEST, msg);
     }
 }
