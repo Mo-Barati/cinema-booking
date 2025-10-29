@@ -64,9 +64,9 @@ public class ShowtimeServiceImpl implements ShowtimeService{
 
     @Override
     public boolean delete(Long id) {
-        if (!showtimeRepo.existsById(id)) return false;
-        showtimeRepo.deleteById(id);
-        return true;
+        return showtimeRepo.findById(id)
+                .map(s -> { showtimeRepo.deleteById(id); return true; })
+                .orElse(false);
     }
 
     @Override
@@ -84,13 +84,15 @@ public class ShowtimeServiceImpl implements ShowtimeService{
     @Override
     @Transactional(readOnly = true)
     public List<Showtime> searchByTitle(String query) {
-        return showtimeRepo.findByMovieTitleContainingIgnoreCase(query);
+        return showtimeRepo.findByMovieTitle(query);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Showtime> findInWindow(Long cinemaId, LocalDateTime from, LocalDateTime to) {
-        return showtimeRepo.findByCinemaIdAndStartTimeBetween(cinemaId, from, to);
+        return showtimeRepo.findByCinemaId(cinemaId).stream()
+                .filter(s -> s.getStartTime().isBefore(to) && s.getEndTime().isAfter(from))
+                .toList();
     }
 
     // --- helpers ---

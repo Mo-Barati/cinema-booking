@@ -46,4 +46,8 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Long>, JpaSp
                                                  @Param("startTime") LocalDateTime startTime,
                                                  @Param("endTime") LocalDateTime endTime,
                                                  @Param("excludeId") Long excludeId);
+
+
+
+    List<Showtime> findByMovieTitle(String movieTitle);
 }
