@@ -1,12 +1,14 @@
 package com.cinema.controller;
 
-
 import com.cinema.entity.Cinema;
 import com.cinema.entity.Showtime;
+import com.cinema.exception.ResourceNotFoundException;
 import com.cinema.service.ShowtimeService;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.format.annotation.DateTimeFormat;  // <-- added
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,8 +23,10 @@ public class ShowtimeController {
     }
 
     @GetMapping("/{id}")
-    public Showtime get(@PathVariable Long id) {
-        return service.findById(id).orElse(null);
+    public ResponseEntity<Showtime> get(@PathVariable Long id) {
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new ResourceNotFoundException("Showtime not found"));
     }
 
     @GetMapping("/by-cinema/{cinemaId}")
@@ -30,32 +34,41 @@ public class ShowtimeController {
         return service.findByCinema(cinemaId);
     }
 
+    // accept q OR movieTitle OR query
     @GetMapping("/search")
-    public List<Showtime> search(@RequestParam String q) {
-        return service.searchByTitle(q);
+    public List<Showtime> search(@RequestParam(required = false, name = "q") String q,
+                                 @RequestParam(required = false, name = "movieTitle") String movieTitle,
+                                 @RequestParam(required = false, name = "query") String query) {
+        String term = q != null ? q : (movieTitle != null ? movieTitle : query);
+        if (term == null) term = "";
+        return service.searchByTitle(term);
     }
 
     @GetMapping("/window")
     public List<Showtime> window(@RequestParam Long cinemaId,
-                                 @RequestParam LocalDateTime from,
-                                 @RequestParam LocalDateTime to) {
+                                 @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+                                 @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
         return service.findInWindow(cinemaId, from, to);
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Showtime create(@RequestBody ShowtimeRequest req) {
-        return service.create(toEntity(req));
+    public ResponseEntity<Showtime> create(@RequestBody ShowtimeRequest req) {
+        Showtime created = service.create(toEntity(req));
+        return ResponseEntity
+                .created(URI.create("/api/showtimes/" + created.getId()))
+                .body(created);
     }
 
     @PutMapping("/{id}")
-    public Showtime update(@PathVariable Long id, @RequestBody ShowtimeRequest req) {
-        return service.update(id, toEntity(req));
+    public ResponseEntity<Showtime> update(@PathVariable Long id, @RequestBody ShowtimeRequest req) {
+        return ResponseEntity.ok(service.update(id, toEntity(req)));
     }
 
     @DeleteMapping("/{id}")
-    public boolean delete(@PathVariable Long id) {
-        return service.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        boolean removed = service.delete(id);
+        return removed ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 
     private Showtime toEntity(ShowtimeRequest r) {
@@ -73,8 +86,6 @@ public class ShowtimeController {
         return s;
     }
 
-
-    // Minimal DTO to avoid sending nested Cinema in requests
     public static class ShowtimeRequest {
         public String movieTitle;
         public int screenNumber;
@@ -85,5 +96,4 @@ public class ShowtimeController {
         public String format;
         public Long cinemaId;
     }
-
 }

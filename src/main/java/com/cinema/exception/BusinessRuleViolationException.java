@@ -1,6 +1,5 @@
 package com.cinema.exception;
 
-public class BusinessRuleViolationException extends RuntimeException{
-
-    public BusinessRuleViolationException(String msg) { super(msg); }
+public class BusinessRuleViolationException extends RuntimeException {
+    public BusinessRuleViolationException(String message) { super(message); }
 }
