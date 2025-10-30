@@ -6,12 +6,15 @@ import com.cinema.exception.ResourceNotFoundException;
 import com.cinema.service.ShowtimeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.format.annotation.DateTimeFormat;  // <-- added
-
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.List;
 
+// Allow the React dev server to call this API during development
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/showtimes")
 public class ShowtimeController {
