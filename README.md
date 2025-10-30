@@ -23,7 +23,7 @@ Production-ready REST API for managing cinemas and showtimes.
 - Global exception handling for clean JSON errors
 - Full testing: unit, repository, and integration
 
-## API Endpoints
+## --- API Endpoints ---
 
 | Method | Endpoint | Description |
 |---------|-----------|-------------|
