@@ -1,5 +1,6 @@
 package com.cinema.service;
 
+import com.cinema.entity.Cinema;
 import com.cinema.entity.Showtime;
 
 import java.time.LocalDateTime;
@@ -16,4 +17,8 @@ public interface ShowtimeService {
     List<Showtime> findByCinema(Long cinemaId);
     List<Showtime> searchByTitle(String query);
     List<Showtime> findInWindow(Long cinemaId, LocalDateTime from, LocalDateTime to);
+
+    // ✨ Add these two:
+    List<Showtime> findAll();
+    Optional<Cinema> findCinemaByName(String name);
 }

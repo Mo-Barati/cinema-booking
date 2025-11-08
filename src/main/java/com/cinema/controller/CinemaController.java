@@ -11,7 +11,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/cinemas")
 @CrossOrigin(origins = "http://localhost:5173")
-// Uncomment this line during local dev if needed:
 // @CrossOrigin(origins = "http://localhost:5173")
 public class CinemaController {
 

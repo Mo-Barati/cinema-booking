@@ -95,6 +95,26 @@ public class ShowtimeServiceImpl implements ShowtimeService{
                 .toList();
     }
 
+    @Override
+    public List<Showtime> findAll() {
+        return List.of();
+    }
+
+    @Override
+    public Optional<Cinema> findCinemaByName(String name) {
+        if (name == null) return Optional.empty();
+        String target = normalize(name);
+
+        // Fallback: normalize all names and compare (robust for spaces/case differences)
+        return cinemaRepo.findAll().stream()
+                .filter(c -> normalize(c.getName()).equals(target))
+                .findFirst();
+    }
+
+    private String normalize(String s) {
+        return s == null ? "" : s.toLowerCase().trim().replaceAll("\\s+", " ");
+    }
+
     // --- helpers ---
 
     private void validateFields(Showtime s) {
