@@ -17,6 +17,8 @@ public interface ShowtimeService {
     List<Showtime> findByCinema(Long cinemaId);
     List<Showtime> searchByTitle(String query);
     List<Showtime> findInWindow(Long cinemaId, LocalDateTime from, LocalDateTime to);
+    List<Showtime> filter(String q, Long cinemaId, LocalDateTime from, LocalDateTime to);
+
 
     // ✨ Add these two:
     List<Showtime> findAll();

@@ -78,26 +78,26 @@ public class ShowtimeServiceImpl implements ShowtimeService{
     @Override
     @Transactional(readOnly = true)
     public List<Showtime> findByCinema(Long cinemaId) {
-        return showtimeRepo.findByCinemaId(cinemaId);
+        return showtimeRepo.findByCinema_Id(cinemaId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Showtime> searchByTitle(String query) {
-        return showtimeRepo.findByMovieTitle(query);
+        return showtimeRepo.findByMovieTitleIgnoreCaseContaining(query == null ? "" : query);
     }
+
 
     @Override
     @Transactional(readOnly = true)
     public List<Showtime> findInWindow(Long cinemaId, LocalDateTime from, LocalDateTime to) {
-        return showtimeRepo.findByCinemaId(cinemaId).stream()
-                .filter(s -> s.getStartTime().isBefore(to) && s.getEndTime().isAfter(from))
-                .toList();
+        return showtimeRepo.findByCinema_IdAndStartTimeBetween(cinemaId, from, to);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Showtime> findAll() {
-        return List.of();
+        return showtimeRepo.findAll();
     }
 
     @Override
@@ -110,6 +110,40 @@ public class ShowtimeServiceImpl implements ShowtimeService{
                 .filter(c -> normalize(c.getName()).equals(target))
                 .findFirst();
     }
+
+    @Override
+    public List<Showtime> filter(String q, Long cinemaId, LocalDateTime from, LocalDateTime to) {
+        String term = (q == null) ? "" : q.trim();
+        boolean hasTitle = !term.isEmpty();
+        boolean hasCinema = cinemaId != null;
+        boolean hasFrom = from != null;
+        boolean hasTo = to != null;
+
+        List<Showtime> base;
+
+        // Pick the broadest efficient query first
+        if (hasCinema && hasFrom && hasTo) {
+            base = showtimeRepo.findByCinema_IdAndStartTimeBetween(cinemaId, from, to);
+        } else if (!hasCinema && hasFrom && hasTo) {
+            base = showtimeRepo.findByStartTimeBetween(from, to);
+        } else if (hasCinema && !hasFrom && !hasTo) {
+            base = showtimeRepo.findByCinema_Id(cinemaId);
+        } else if (!hasCinema && !hasFrom && !hasTo && hasTitle) {
+            base = showtimeRepo.findByMovieTitleIgnoreCaseContaining(term);
+        } else {
+            base = showtimeRepo.findAll();
+        }
+
+        if (hasTitle) {
+            String lc = term.toLowerCase();
+            base = base.stream()
+                    .filter(s -> s.getMovieTitle() != null && s.getMovieTitle().toLowerCase().contains(lc))
+                    .toList();
+        }
+
+        return base;
+    }
+
 
     private String normalize(String s) {
         return s == null ? "" : s.toLowerCase().trim().replaceAll("\\s+", " ");
