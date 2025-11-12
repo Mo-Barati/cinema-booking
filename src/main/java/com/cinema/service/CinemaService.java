@@ -30,4 +30,17 @@ public class CinemaService {
         }
         cinemaRepository.deleteById(id);
     }
+
+    public Cinema updateCinema(Long id, Cinema cinema) {
+        // If cinema does not exist, fail early (optional but safer)
+        Cinema existing = cinemaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cinema not found with id " + id));
+
+        // Make sure we update the correct record
+        cinema.setId(existing.getId());
+
+        // Save the full entity (your frontend sends all fields)
+        return cinemaRepository.save(cinema);
+    }
+
 }
