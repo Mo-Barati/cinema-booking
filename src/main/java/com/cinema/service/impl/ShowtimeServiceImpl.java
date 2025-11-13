@@ -10,7 +10,10 @@ import com.cinema.repository.ShowtimeRepository;
 import com.cinema.service.ShowtimeService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.cinema.entity.Seat;
+import com.cinema.entity.Ticket;
+import com.cinema.repository.SeatRepository;
+import com.cinema.repository.TicketRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -21,12 +24,58 @@ public class ShowtimeServiceImpl implements ShowtimeService{
 
     private final ShowtimeRepository showtimeRepo;
     private final CinemaRepository cinemaRepo;
+    private final SeatRepository seatRepo;
+    private final TicketRepository ticketRepo;
 
 
-    public ShowtimeServiceImpl(ShowtimeRepository showtimeRepo, CinemaRepository cinemaRepo) {
+    public ShowtimeServiceImpl(ShowtimeRepository showtimeRepo,
+                               CinemaRepository cinemaRepo,
+                               SeatRepository seatRepo,
+                               TicketRepository ticketRepo) {
         this.showtimeRepo = showtimeRepo;
         this.cinemaRepo = cinemaRepo;
+        this.seatRepo = seatRepo;
+        this.ticketRepo = ticketRepo;
     }
+
+    @Override
+    @Transactional
+    public void bookSeats(Long showtimeId, List<Long> seatIds) {
+        if (seatIds == null || seatIds.isEmpty()) {
+            throw new BusinessRuleViolationException("seatIds must not be empty");
+        }
+
+        Showtime showtime = showtimeRepo.findById(showtimeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Showtime not found: " + showtimeId));
+
+        List<Seat> seats = seatRepo.findAllById(seatIds);
+        if (seats.size() != seatIds.size()) {
+            throw new ResourceNotFoundException("One or more seats not found");
+        }
+
+        Long cinemaId = showtime.getCinema().getId();
+        int screen = showtime.getScreenNumber();
+        boolean allMatch = seats.stream()
+                .allMatch(seat -> seat.getCinema().getId().equals(cinemaId)
+                        && seat.getScreenNumber() == screen);
+        if (!allMatch) {
+            throw new BusinessRuleViolationException("One or more seats do not belong to this showtime's screen");
+        }
+
+        List<Ticket> existing = ticketRepo.findByShowtimeIdAndSeatIdIn(showtimeId, seatIds);
+        if (!existing.isEmpty()) {
+            throw new BusinessRuleViolationException("One or more seats are already booked");
+        }
+
+        double price = showtime.getTicketPrice();
+        List<Ticket> ticketsToSave = seats.stream()
+                .map(seat -> new Ticket(showtime, seat, price))
+                .toList();
+
+        ticketRepo.saveAll(ticketsToSave); // no return
+    }
+
+
 
 
     @Override

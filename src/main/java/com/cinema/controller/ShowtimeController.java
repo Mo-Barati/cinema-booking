@@ -2,8 +2,11 @@ package com.cinema.controller;
 
 import com.cinema.entity.Cinema;
 import com.cinema.entity.Showtime;
+import com.cinema.entity.Ticket;
 import com.cinema.exception.ResourceNotFoundException;
+import com.cinema.service.SeatMapService;
 import com.cinema.service.ShowtimeService;
+import com.cinema.web.dto.SeatStatusDto;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,16 +27,19 @@ import java.util.Optional;
 public class ShowtimeController {
 
     private final ShowtimeService service;
+    private final SeatMapService seatMapService;
 
-    public ShowtimeController(ShowtimeService service) {
+    public ShowtimeController(ShowtimeService service, SeatMapService seatMapService) {
         this.service = service;
+        this.seatMapService = seatMapService;
     }
 
     // ========== LIST / GET ==========
+
     /** Allow GET /api/showtimes (needed by the frontend table) */
     @GetMapping
     public List<Showtime> getAll() {
-        return service.findAll(); // implement in service: return repository.findAll();
+        return service.findAll();
     }
 
     @GetMapping("/{id}")
@@ -41,6 +47,12 @@ public class ShowtimeController {
         return service.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResourceNotFoundException("Showtime not found"));
+    }
+
+    /** Seat map for a given showtime */
+    @GetMapping("/{id}/seats")
+    public List<SeatStatusDto> getSeatMap(@PathVariable Long id) {
+        return seatMapService.getSeatMapForShowtime(id);
     }
 
     @GetMapping("/by-cinema/{cinemaId}")
@@ -75,8 +87,8 @@ public class ShowtimeController {
         return service.filter(q, cinemaId, from, to);
     }
 
-
     // ========== CREATE ==========
+
     /**
      * Full create – expects the complete structure used by your domain.
      * Keep this for API clients or future admin forms that send all fields.
@@ -95,8 +107,6 @@ public class ShowtimeController {
      */
     @PostMapping("/simple")
     public ResponseEntity<Showtime> createSimple(@RequestBody SimpleShowtimeRequest r) {
-        // You need a helper in the service to find a cinema by name (case-insensitive)
-        // e.g., service.findCinemaByName(String) -> Optional<Cinema>
         Optional<Cinema> cinemaOpt = service.findCinemaByName(r.cinemaName);
         Cinema cinema = cinemaOpt.orElseThrow(() ->
                 new ResourceNotFoundException("Cinema not found: " + r.cinemaName));
@@ -121,6 +131,7 @@ public class ShowtimeController {
     }
 
     // ========== UPDATE / DELETE ==========
+
     @PutMapping("/{id}")
     public ResponseEntity<Showtime> update(@PathVariable Long id, @RequestBody ShowtimeRequest req) {
         return ResponseEntity.ok(service.update(id, toEntity(req)));
@@ -132,6 +143,16 @@ public class ShowtimeController {
         return removed ? ResponseEntity.noContent().build()
                 : ResponseEntity.notFound().build();
     }
+
+    // ========== BOOKING ==========
+
+    @PostMapping("/{id}/tickets")
+    public ResponseEntity<Void> bookSeats(@PathVariable Long id,
+                                          @RequestBody BookSeatsRequest request) {
+        service.bookSeats(id, request.seatIds);
+        return ResponseEntity.noContent().build();
+    }
+
 
     // ========== Mapping helpers / DTOs ==========
 
@@ -169,5 +190,10 @@ public class ShowtimeController {
         public String cinemaName;
         public LocalDateTime startTime;
         public LocalDateTime endTime;
+    }
+
+    /** Request body for booking seats */
+    public static class BookSeatsRequest {
+        public List<Long> seatIds;
     }
 }

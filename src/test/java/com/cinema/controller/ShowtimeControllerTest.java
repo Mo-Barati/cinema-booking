@@ -15,6 +15,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import com.cinema.service.SeatMapService;
+
 
 import java.time.LocalDateTime;
 
@@ -39,6 +41,10 @@ public class ShowtimeControllerTest {
 
     @MockBean
     private ShowtimeService showtimeService;
+
+    @MockBean
+    private SeatMapService seatMapService;
+
 
     private ObjectMapper mapper;
 

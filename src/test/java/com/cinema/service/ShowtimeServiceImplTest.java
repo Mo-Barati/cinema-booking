@@ -15,7 +15,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import com.cinema.repository.SeatRepository;
+import com.cinema.repository.TicketRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +30,8 @@ class ShowtimeServiceImplTest {
 
     @Mock private ShowtimeRepository showtimeRepo;
     @Mock private CinemaRepository cinemaRepo;
+    @Mock private SeatRepository seatRepo;
+    @Mock private TicketRepository ticketRepo;
 
     @InjectMocks
     private ShowtimeServiceImpl service;
@@ -213,24 +216,25 @@ class ShowtimeServiceImplTest {
     @Test
     @DisplayName("findByCinema: delegates to repo")
     void findByCinema_ok() {
-        when(showtimeRepo.findByCinemaId(100L)).thenReturn(List.of(copy(base)));
+        when(showtimeRepo.findByCinema_Id(100L)).thenReturn(List.of(copy(base)));
 
         var list = service.findByCinema(100L);
 
         assertEquals(1, list.size());
-        verify(showtimeRepo).findByCinemaId(100L);
+        verify(showtimeRepo).findByCinema_Id(100L);
     }
 
     @Test
-    @DisplayName("searchByTitle: delegates to repo")
     void searchByTitle_ok() {
-        when(showtimeRepo.findByMovieTitle("The Batman")).thenReturn(List.of(copy(base)));
+        when(showtimeRepo.findByMovieTitleIgnoreCaseContaining("bat"))
+                .thenReturn(List.of(copy(base)));
 
-        var list = service.searchByTitle("The Batman");
+        var result = service.searchByTitle("bat");
 
-        assertEquals(1, list.size());
-        verify(showtimeRepo).findByMovieTitle("The Batman");
+        assertEquals(1, result.size());
+        verify(showtimeRepo).findByMovieTitleIgnoreCaseContaining("bat");
     }
+
 
     // ---- helper ----
     private Showtime copy(Showtime src) {

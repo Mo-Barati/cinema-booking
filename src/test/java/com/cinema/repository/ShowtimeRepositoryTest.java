@@ -62,7 +62,8 @@ class ShowtimeRepositoryTest {
         show(b, "Inception", 1, t(19, 0), t(21, 30));
         em.flush();
 
-        List<Showtime> forA = repo.findByCinemaId(a.getId());
+        List<Showtime> forA = repo.findByCinema_Id(a.getId());
+
         assertThat(forA).hasSize(2).allMatch(s -> s.getCinema().getId().equals(a.getId()));
     }
 
@@ -74,7 +75,7 @@ class ShowtimeRepositoryTest {
         show(c, "BATMAN Begins", 2, t(21, 0), t(23, 0));
         em.flush();
 
-        List<Showtime> hits = repo.findByMovieTitleContainingIgnoreCase("batman");
+        List<Showtime> hits = repo.findByMovieTitleIgnoreCaseContaining("batman");
         assertThat(hits).hasSize(2);
     }
 
@@ -99,8 +100,12 @@ class ShowtimeRepositoryTest {
         show(c, "Late",   1, dt(2030,1,1, 18,0), dt(2030,1,1,20,0));
         em.flush();
 
-        List<Showtime> hits = repo.findByCinemaIdAndStartTimeBetween(
-                c.getId(), dt(2030,1,1,11,0), dt(2030,1,1,16,0));
+        List<Showtime> hits = repo.findByCinema_IdAndStartTimeBetween(
+                c.getId(),
+                LocalDateTime.of(2030, 1, 1, 11, 0),
+                LocalDateTime.of(2030, 1, 1, 16, 0)
+        );
+
 
         assertThat(hits).extracting(Showtime::getMovieTitle).containsExactly("Inside");
     }
